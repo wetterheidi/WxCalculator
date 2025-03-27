@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Calculators</title>
+    <style>
+        body {
+            font-family: Calibri, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            font-family: Calibri, sans-serif;
+        }
+
+        /* Tab styles */
+        .tab-container {
+            overflow: hidden;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            background-color: #f1f1f1;
+            float: left;
+            border: 1px solid #ccc;
+            outline: none;
+            color: blue;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: 0.3s;
+            font-size: 16px;
+            font-family: Calibri, sans-serif;
+        }
+
+        .tab-button:hover {
+            background-color: #ddd;
+        }
+
+        .tab-button.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        /* Ensure only active tab is visible */
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Reuse styles from individual projects */
+        .converter-container, .calculator-container, .container {
+            padding: 7px;
+        }
+
+        .input-section, .results, .extra-section, .altitude-section {
+            margin: 20px 0;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        label {
+            width: 260px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        select {
+            font-family: Calibri, sans-serif;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: right;
+            min-width: 50px;
+            margin-left: 5px;
+        }
+
+        input {
+            font-family: Calibri, sans-serif;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: right;
+            min-width: 200px;
+            max-width: 265px;
+        }
+
+        input[type="text"] {
+            background-color: #f0f0f0;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 5px 10px;
+            margin-top: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .label-green { color: green; }
+        .label-red { color: red; }
+        .label-blue { color: blue; }
+
+        @media (max-width: 600px) {
+            .input-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            input, select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            select {
+                margin-left: 0;
+                margin-top: 5px;
+            }
+
+            .tab-button {
+                width: 25%;
+                padding: 10px 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Weather Calculators</h1>
+
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+        <button class="tab-button active" onclick="openTab(event, 'wind')">Wind</button>
+        <button class="tab-button" onclick="openTab(event, 'temperature')">Temperature</button>
+        <button class="tab-button" onclick="openTab(event, 'pressure')">Pressure</button>
+        <button class="tab-button" onclick="openTab(event, 'humidity')">Humidity</button>
+    </div>
+
+    <!-- Wind Tab -->
+    <div id="wind" class="tab-content active">
+        <!-- Wind Tools Content -->
+        <div class="converter-container">
+            <h2>Wind Speed Converter</h2>
+            <div class="input-section">
+                <div class="input-group">
+                    <label>Wind Speed:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="windInput" placeholder="Enter value">
+                        <select id="unitSelectWind">
+                            <option value="kmh">km/h</option>
+                            <option value="ms">m/s</option>
+                            <option value="mph">mph</option>
+                            <option value="kt">kt</option>
+                            <option value="bft">bft</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="results">
+                <div class="input-group">
+                    <label>Kilometers per Hour (km/h):</label>
+                    <input type="text" id="kmhResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Meters per Second (m/s):</label>
+                    <input type="text" id="msResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Miles per Hour (mph):</label>
+                    <input type="text" id="mphResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Knots (kt):</label>
+                    <input type="text" id="ktResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Beaufort (bft):</label>
+                    <input type="text" id="bftResult" readonly value="-">
+                </div>
+            </div>
+        </div>
+        <div class="calculator-container">
+            <h2>Wind Calculator</h2>
+            <div id="error" style="color: red; text-align: center;"></div>
+            <div class="calculator-content" style="display: flex; justify-content: space-between; flex-wrap: nowrap;">
+                <div class="input-output" style="width: 47%;">
+                    <div class="input-group">
+                        <label class="label-green">True Course (°):</label>
+                        <input type="number" id="trueCourse" value="180" min="0" max="360" onchange="calculateWind()">
+                    </div>
+                    <div class="input-group">
+                        <label class="label-green">True Airspeed (kt):</label>
+                        <input type="number" id="trueAirspeed" value="100" min="0" onchange="calculateWind()">
+                    </div>
+                    <div class="input-group">
+                        <label class="label-red">Wind Direction (°):</label>
+                        <input type="number" id="windDirection" value="90" min="0" max="360" onchange="calculateWind()">
+                    </div>
+                    <div class="input-group">
+                        <label class="label-red">Wind Speed (kt):</label>
+                        <input type="number" id="windSpeed" value="12" min="0" onchange="calculateWind()">
+                    </div>
+                    <div class="input-group">
+                        <label>Crosswind (kt):</label>
+                        <input type="text" id="crosswind" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Headwind (kt):</label>
+                        <input type="text" id="headwind" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Wind Correction Angle (°):</label>
+                        <input type="text" id="windCorrectionAngle" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label class="label-blue">Heading (°):</label>
+                        <input type="text" id="trueHeading" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label class="label-blue">Ground Speed (kt):</label>
+                        <input type="text" id="groundSpeed" readonly>
+                    </div>
+                </div>
+                <div class="diagram" style="width: 52%;">
+                    <canvas id="windTriangle" width="300" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Temperature Tab -->
+    <div id="temperature" class="tab-content">
+        <!-- Temperature Converter Content -->
+        <div class="container">
+            <h2>Temperaturumrechner</h2>
+            <div class="input-section">
+                <div class="input-group">
+                    <label>Temperatur:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="tempInput" placeholder="Wert eingeben">
+                        <select id="unitSelectTemp">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="results">
+                <div class="input-group">
+                    <label>Celsius:</label>
+                    <input type="text" id="celsiusResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Fahrenheit:</label>
+                    <input type="text" id="fahrenheitResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Kelvin:</label>
+                    <input type="text" id="kelvinResult" readonly value="-">
+                </div>
+            </div>
+            <div class="extra-section">
+                <h2>Windchill und Hitzeindex</h2>
+                <div class="input-group">
+                    <label>Windgeschwindigkeit:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="windSpeedTemp" placeholder="z.B. 10">
+                        <select id="windSpeedUnitTemp">
+                            <option value="kmh">km/h</option>
+                            <option value="kt">kt</option>
+                            <option value="mph">mph</option>
+                            <option value="ms">m/s</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Luftfeuchtigkeit (%):</label>
+                    <input type="number" id="humidityTemp" placeholder="z.B. 50">
+                </div>
+                <div class="input-group">
+                    <label title="Quelle: National Weather Service (NWS)">Windchill:</label>
+                    <input type="text" id="windchillResult" readonly value="-">
+                    <span id="windchillUnit" style="margin-left: 5px;"></span>
+                </div>
+                <div class="input-group">
+                    <label title="Quelle: National Weather Service (NWS)">Hitzeindex:</label>
+                    <input type="text" id="heatIndexResult" readonly value="-">
+                    <span id="heatIndexUnit" style="margin-left: 5px;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pressure Tab -->
+    <div id="pressure" class="tab-content">
+        <!-- Pressure Converter Content -->
+        <div class="container">
+            <h2>Druckumrechner</h2>
+            <div class="input-section">
+                <div class="input-group">
+                    <label>Druck:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="pressureInput" placeholder="Wert eingeben">
+                        <select id="unitSelectPressure">
+                            <option value="hpa">hPa</option>
+                            <option value="inhg">inHg</option>
+                            <option value="mmhg">mmHg</option>
+                            <option value="psi">psi</option>
+                            <option value="atm">atm</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="results">
+                <div class="input-group">
+                    <label>Zoll Quecksilber (inHg):</label>
+                    <input type="text" id="inhgResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Millimeter Quecksilber (mmHg):</label>
+                    <input type="text" id="mmhgResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Hektopascal (hPa):</label>
+                    <input type="text" id="hpaResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Pound pro Quadratzoll (psi):</label>
+                    <input type="text" id="psiResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Standard Atmosphäre (atm):</label>
+                    <input type="text" id="atmResult" readonly value="-">
+                </div>
+            </div>
+            <div class="extra-section">
+                <h2>Luftfahrt-Druckwerte</h2>
+                <div class="selection-group" style="display: flex; align-items: center; margin-bottom: 20px;">
+                    <label>Wähle zwei Eingabewerte:</label>
+                    <select id="inputSelection">
+                        <option value="elevation-qfeInput">Elevation + QFE</option>
+                        <option value="elevation-qnhInput">Elevation + QNH</option>
+                        <option value="elevation-flInput">Elevation + FL</option>
+                        <option value="qfeInput-qnhInput">QFE + QNH</option>
+                        <option value="qfeInput-flInput">QFE + FL</option>
+                        <option value="qnhInput-flInput">QNH + FL</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Elevation:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="elevation" placeholder="z.B. 500" disabled>
+                        <select id="elevationUnitSelect">
+                            <option value="meters">m</option>
+                            <option value="feet">ft</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>QFE (hPa):</label>
+                    <input type="number" id="qfeInput" placeholder="z.B. 1013.25" disabled>
+                </div>
+                <div class="input-group">
+                    <label>QNH (hPa):</label>
+                    <input type="number" id="qnhInput" placeholder="z.B. 1013.25" disabled>
+                </div>
+                <div class="input-group">
+                    <label>Flugfläche (FL):</label>
+                    <input type="number" id="flInput" placeholder="z.B. 50" disabled>
+                </div>
+            </div>
+            <div class="altitude-section">
+                <h4 align="center">Density und Pressure Altitude</h4>
+                <div class="input-group">
+                    <label>Temperatur:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="temperaturePressure" placeholder="z.B. 15">
+                        <select id="tempUnitSelectPressure">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label id="paLabel">Pressure Altitude (m):</label>
+                    <input type="text" id="pressureAltitude" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label id="daLabel">Density Altitude (m):</label>
+                    <input type="text" id="densityAltitude" readonly value="-">
+                </div>
+                <button id="resetButton">Zurücksetzen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Humidity Tab -->
+    <div id="humidity" class="tab-content">
+        <!-- Humidity Converter Content -->
+        <div class="container">
+            <h2>Feuchteumrechner</h2>
+            <div class="input-section">
+                <div class="input-group">
+                    <label title="Die gemessene Lufttemperatur">Temperatur:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="tempInputHumidity" placeholder="Wert eingeben">
+                        <select id="tempUnitHumidity">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label title="Der Anteil der aktuellen Feuchtigkeit">Relative Luftfeuchtigkeit (%):</label>
+                    <input type="number" id="humidityInput" placeholder="z.B. 50" min="0" max="100">
+                </div>
+                <div class="input-group">
+                    <label title="Die Temperatur, bei der die Luft gesättigt wäre">Taupunkt:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="dewPointInput" placeholder="Wert eingeben">
+                        <select id="dewPointUnit">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="results">
+                <h2>Ergebnisse</h2>
+                <div class="input-group">
+                    <label>Temperatur:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="tempResultHumidity" readonly value="-">
+                        <select id="tempResultUnit">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Relative Luftfeuchtigkeit (%):</label>
+                    <input type="text" id="humidityResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Taupunkt:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="dewPointResult" readonly value="-">
+                        <select id="dewPointResultUnit">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Sättigungsdampfdruck:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="satVaporPressureResult" readonly value="-">
+                        <select id="satVaporPressureResultUnit">
+                            <option value="hPa">hPa</option>
+                            <option value="mmHg">mmHg</option>
+                            <option value="inHg">inHg</option>
+                            <option value="psi">psi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Aktueller Dampfdruck:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="vaporPressureResult" readonly value="-">
+                        <select id="vaporPressureResultUnit">
+                            <option value="hPa">hPa</option>
+                            <option value="mmHg">mmHg</option>
+                            <option value="inHg">inHg</option>
+                            <option value="psi">psi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="extra-section">
+                <h2>Zusätzliche Berechnungen</h2>
+                <div class="input-group">
+                    <label>Stationsdruck:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="stationPressureInput" placeholder="z.B. 1013.25" min="0">
+                        <select id="pressureUnitHumidity">
+                            <option value="hPa">hPa</option>
+                            <option value="mmHg">mmHg</option>
+                            <option value="inHg">inHg</option>
+                            <option value="psi">psi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Virtuelle Temperatur:</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="virtualTempResult" readonly value="-">
+                        <select id="virtualTempResultUnit">
+                            <option value="celsius">°C</option>
+                            <option value="fahrenheit">°F</option>
+                            <option value="kelvin">°K</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Sättigungsmischungsverhältnis (g/kg):</label>
+                    <input type="text" id="satMixingRatioResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Mischungsverhältnis (g/kg):</label>
+                    <input type="text" id="mixingRatioResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Absolute Feuchte (g/m³):</label>
+                    <input type="text" id="absoluteHumidityResult" readonly value="-">
+                </div>
+                <div class="input-group">
+                    <label>Spezifische Feuchte (g/kg):</label>
+                    <input type="text" id="specificHumidityResult" readonly value="-">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching function
+        function openTab(evt, tabName) {
+            const tabContents = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove("active");
+            }
+            const tabButtons = document.getElementsByClassName("tab-button");
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove("active");
+            }
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            // Trigger initial calculations for the active tab
+            if (tabName === "wind") {
+                convertWind();
+                calculateWind();
+            } else if (tabName === "temperature") {
+                convertTemp();
+            } else if (tabName === "pressure") {
+                convertPressure();
+                calculateAviationPressures();
+            } else if (tabName === "humidity") {
+                calculateHumidity();
+            }
+        }
+
+        // Wind Tools Scripts
+        function convertWind() {
+            const windInput = parseFloat(document.getElementById("windInput").value);
+            const unit = document.getElementById("unitSelectWind").value;
+            let kmh, ms, mph, kt, bft;
+            const bftRanges = [
+                { bft: 0, min: 0, max: 1, desc: "Calm" },
+                { bft: 1, min: 1, max: 5, desc: "Light Air" },
+                { bft: 2, min: 6, max: 11, desc: "Light Breeze" },
+                { bft: 3, min: 12, max: 19, desc: "Gentle Breeze" },
+                { bft: 4, min: 20, max: 28, desc: "Moderate Breeze" },
+                { bft: 5, min: 29, max: 38, desc: "Fresh Breeze" },
+                { bft: 6, min: 39, max: 49, desc: "Strong Breeze" },
+                { bft: 7, min: 50, max: 61, desc: "Near Gale" },
+                { bft: 8, min: 62, max: 74, desc: "Gale" },
+                { bft: 9, min: 75, max: 88, desc: "Strong Gale" },
+                { bft: 10, min: 89, max: 102, desc: "Storm" },
+                { bft: 11, min: 103, max: 117, desc: "Violent Storm" },
+                { bft: 12, min: 118, max: Infinity, desc: "Hurricane" }
+            ];
+
+            if (!isNaN(windInput)) {
+                if (unit === "kmh") {
+                    kmh = windInput.toFixed(1);
+                    ms = (windInput / 3.6).toFixed(1);
+                    mph = (windInput / 1.609344).toFixed(1);
+                    kt = (windInput / 1.852).toFixed(1);
+                    const range = bftRanges.find(r => windInput >= r.min && windInput <= r.max);
+                    bft = range ? `${range.bft} (${range.desc})` : "-";
+                } else if (unit === "ms") {
+                    kmh = (windInput * 3.6).toFixed(1);
+                    ms = windInput.toFixed(1);
+                    mph = (windInput * 3.6 / 1.609344).toFixed(1);
+                    kt = (windInput * 3.6 / 1.852).toFixed(1);
+                    const range = bftRanges.find(r => (windInput * 3.6) >= r.min && (windInput * 3.6) <= r.max);
+                    bft = range ? `${range.bft} (${range.desc})` : "-";
+                } else if (unit === "mph") {
+                    kmh = (windInput * 1.609344).toFixed(1);
+                    ms = (windInput * 1.609344 / 3.6).toFixed(1);
+                    mph = windInput.toFixed(1);
+                    kt = (windInput * 1.609344 / 1.852).toFixed(1);
+                    const range = bftRanges.find(r => (windInput * 1.609344) >= r.min && (windInput * 1.609344) <= r.max);
+                    bft = range ? `${range.bft} (${range.desc})` : "-";
+                } else if (unit === "kt") {
+                    kmh = (windInput * 1.852).toFixed(1);
+                    ms = (windInput * 1.852 / 3.6).toFixed(1);
+                    mph = (windInput * 1.852 / 1.609344).toFixed(1);
+                    kt = windInput.toFixed(1);
+                    const range = bftRanges.find(r => (windInput * 1.852) >= r.min && (windInput * 1.852) <= r.max);
+                    bft = range ? `${range.bft} (${range.desc})` : "-";
+                } else if (unit === "bft") {
+                    const range = bftRanges[Math.min(Math.floor(windInput), 12)];
+                    if (range) {
+                        kmh = `${range.min} - ${range.max}`;
+                        ms = `${(range.min / 3.6).toFixed(1)} - ${(range.max / 3.6).toFixed(1)}`;
+                        mph = `${(range.min / 1.609344).toFixed(1)} - ${(range.max / 1.609344).toFixed(1)}`;
+                        kt = `${(range.min / 1.852).toFixed(1)} - ${(range.max / 1.852).toFixed(1)}`;
+                        bft = `${range.bft} (${range.desc})`;
+                    }
+                }
+            } else {
+                kmh = ms = mph = kt = bft = "-";
+            }
+
+            document.getElementById("kmhResult").value = kmh;
+            document.getElementById("msResult").value = ms;
+            document.getElementById("mphResult").value = mph;
+            document.getElementById("ktResult").value = kt;
+            document.getElementById("bftResult").value = bft;
+        }
+
+        const canvas = document.getElementById('windTriangle');
+        const ctx = canvas.getContext('2d');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        function validateInput(inputId, min, max) {
+            const input = document.getElementById(inputId);
+            let value = parseFloat(input.value);
+            if (isNaN(value)) {
+                input.style.borderColor = 'red';
+                return min;
+            }
+            input.style.borderColor = '#ccc';
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function calculateWind() {
+            let trueCourse = validateInput('trueCourse', 0, 360);
+            let trueAirspeed = validateInput('trueAirspeed', 0, Infinity);
+            let windDirection = validateInput('windDirection', 0, 360);
+            let windSpeed = validateInput('windSpeed', 0, Infinity);
+
+            trueCourse = ((trueCourse % 360) + 360) % 360;
+            windDirection = ((windDirection % 360) + 360) % 360;
+            trueAirspeed = Math.max(0, trueAirspeed);
+            windSpeed = Math.max(0, windSpeed);
+
+            if (trueAirspeed === 0) trueAirspeed = 1;
+
+            document.getElementById('trueCourse').value = trueCourse;
+            document.getElementById('trueAirspeed').value = trueAirspeed;
+            document.getElementById('windDirection').value = windDirection;
+            document.getElementById('windSpeed').value = windSpeed;
+
+            const windAngle = (windDirection - trueCourse) * Math.PI / 180;
+            const crosswind = windSpeed * Math.sin(windAngle);
+            const headwind = windSpeed * Math.cos(windAngle);
+
+            let windCorrectionAngle = 0;
+            const ratio = crosswind / trueAirspeed;
+            if (ratio >= -1 && ratio <= 1) {
+                windCorrectionAngle = Math.asin(ratio) * 180 / Math.PI;
+            }
+
+            const trueHeading = (trueCourse + windCorrectionAngle + 360) % 360;
+
+            const tasX = trueAirspeed * Math.sin(trueHeading * Math.PI / 180);
+            const tasY = trueAirspeed * Math.cos(trueHeading * Math.PI / 180);
+            const windX = windSpeed * Math.sin((windDirection - 180) * Math.PI / 180);
+            const windY = windSpeed * Math.cos((windDirection - 180) * Math.PI / 180);
+
+            const gsX = tasX + windX;
+            const gsY = tasY + windY;
+
+            const courseAngleRad = trueCourse * Math.PI / 180;
+            const courseUnitX = Math.sin(courseAngleRad);
+            const courseUnitY = Math.cos(courseAngleRad);
+            let groundSpeed = gsX * courseUnitX + gsY * courseUnitY;
+
+            if (groundSpeed < 0) {
+                document.getElementById('error').textContent = "Caution: Aircraft cannot move forward; headwind exceeds airspeed.";
+            } else {
+                document.getElementById('error').textContent = "";
+            }
+
+            document.getElementById('crosswind').value = crosswind.toFixed(0);
+            document.getElementById('headwind').value = headwind.toFixed(0);
+            document.getElementById('windCorrectionAngle').value = windCorrectionAngle.toFixed(0);
+            document.getElementById('trueHeading').value = trueHeading.toFixed(0);
+            document.getElementById('groundSpeed').value = groundSpeed.toFixed(0);
+
+            drawWindTriangle(trueCourse, windDirection, windSpeed, trueAirspeed, crosswind, headwind, windCorrectionAngle, groundSpeed, trueHeading);
+        }
+
+        function drawWindTriangle(trueCourse, windDirection, windSpeed, trueAirspeed, crosswind, headwind, windCorrectionAngle, groundSpeed, trueHeading) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const maxSpeed = Math.max(trueAirspeed, groundSpeed, windSpeed) || 1;
+            const radius = Math.min(100, (canvas.width / 2) * (maxSpeed / Math.max(trueAirspeed, groundSpeed, windSpeed, 1)));
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+
+            ctx.font = '12px Calibri';
+            ctx.fillStyle = 'black';
+            ctx.fillText('N', centerX - 5, centerY - radius - 10);
+            ctx.fillText('S', centerX - 5, centerY + radius + 20);
+            ctx.fillText('E', centerX + radius + 10, centerY + 5);
+            ctx.fillText('W', centerX - radius - 20, centerY + 5);
+
+            for (let i = 0; i < 360; i += 30) {
+                const angle = (i - 90) * Math.PI / 180;
+                const x1 = centerX + radius * Math.cos(angle);
+                const y1 = centerY + radius * Math.sin(angle);
+                const x2 = centerX + (radius - 5) * Math.cos(angle);
+                const y2 = centerY + (radius - 5) * Math.sin(angle);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+
+            const courseAngle = (trueCourse - 90) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            const courseLength = (trueAirspeed / maxSpeed) * radius;
+            const courseEndX = centerX + courseLength * Math.cos(courseAngle);
+            const courseEndY = centerY + courseLength * Math.sin(courseAngle);
+            ctx.lineTo(courseEndX, courseEndY);
+            ctx.strokeStyle = 'green';
+            ctx.stroke();
+
+            const arrowSize = 10;
+            const courseArrowAngle1 = courseAngle + Math.PI * 0.75;
+            const courseArrowAngle2 = courseAngle - Math.PI * 0.75;
+            ctx.beginPath();
+            ctx.moveTo(courseEndX, courseEndY);
+            ctx.lineTo(courseEndX + arrowSize * Math.cos(courseArrowAngle1), courseEndY + arrowSize * Math.sin(courseArrowAngle1));
+            ctx.moveTo(courseEndX, courseEndY);
+            ctx.lineTo(courseEndX + arrowSize * Math.cos(courseArrowAngle2), courseEndY + arrowSize * Math.sin(courseArrowAngle2));
+            ctx.strokeStyle = 'green';
+            ctx.stroke();
+
+            const windAngle = (windDirection - 90) * Math.PI / 180;
+            const windLength = (windSpeed / maxSpeed) * radius;
+            const flippedWindAngle = windAngle + Math.PI;
+            const windEndX = centerX + windLength * Math.cos(flippedWindAngle);
+            const windEndY = centerY + windLength * Math.sin(flippedWindAngle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(windEndX, windEndY);
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+
+            const windToAngle = flippedWindAngle;
+            const windArrowAngle1 = windToAngle + Math.PI * 0.75;
+            const windArrowAngle2 = windToAngle - Math.PI * 0.75;
+            ctx.beginPath();
+            ctx.moveTo(windEndX, windEndY);
+            ctx.lineTo(windEndX + arrowSize * Math.cos(windArrowAngle1), windEndY + arrowSize * Math.sin(windArrowAngle1));
+            ctx.moveTo(windEndX, windEndY);
+            ctx.lineTo(windEndX + arrowSize * Math.cos(windArrowAngle2), windEndY + arrowSize * Math.sin(windArrowAngle2));
+            ctx.strokeStyle = 'red';
+            ctx.stroke();
+
+            const groundSpeedAngle = (trueHeading - 90) * Math.PI / 180;
+            const groundSpeedLength = (groundSpeed / maxSpeed) * radius;
+            const groundSpeedEndX = centerX + groundSpeedLength * Math.cos(groundSpeedAngle);
+            const groundSpeedEndY = centerY + groundSpeedLength * Math.sin(groundSpeedAngle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(groundSpeedEndX, groundSpeedEndY);
+            ctx.strokeStyle = 'blue';
+            ctx.stroke();
+
+            const groundSpeedVectorAngle = groundSpeedAngle;
+            const groundSpeedArrowAngle1 = groundSpeedVectorAngle + Math.PI * 0.75;
+            const groundSpeedArrowAngle2 = groundSpeedVectorAngle - Math.PI * 0.75;
+            ctx.beginPath();
+            ctx.moveTo(groundSpeedEndX, groundSpeedEndY);
+            ctx.lineTo(groundSpeedEndX + arrowSize * Math.cos(groundSpeedArrowAngle1), groundSpeedEndY + arrowSize * Math.sin(groundSpeedArrowAngle1));
+            ctx.moveTo(groundSpeedEndX, groundSpeedEndY);
+            ctx.lineTo(groundSpeedEndX + arrowSize * Math.cos(groundSpeedArrowAngle2), groundSpeedEndY + arrowSize * Math.sin(groundSpeedArrowAngle2));
+            ctx.strokeStyle = 'blue';
+            ctx.stroke();
+        }
+
+        document.getElementById("windInput").addEventListener("input", convertWind);
+        document.getElementById("unitSelectWind").addEventListener("change", convertWind);
+
+        // Temperature Converter Scripts
+        function convertTemp() {
+            const tempInput = parseFloat(document.getElementById("tempInput").value);
+            const unit = document.getElementById("unitSelectTemp").value;
+
+            let celsius, fahrenheit, kelvin;
+
+            if (!isNaN(tempInput)) {
+                if (unit === "celsius") {
+                    celsius = tempInput;
+                    fahrenheit = (celsius * 9 / 5) + 32;
+                    kelvin = celsius + 273.15;
+                } else if (unit === "fahrenheit") {
+                    fahrenheit = tempInput;
+                    celsius = (fahrenheit - 32) * 5 / 9;
+                    kelvin = celsius + 273.15;
+                } else if (unit === "kelvin") {
+                    kelvin = tempInput;
+                    celsius = kelvin - 273.15;
+                    fahrenheit = (celsius * 9 / 5) + 32;
+                }
+            } else {
+                celsius = fahrenheit = kelvin = "-";
+            }
+
+            document.getElementById("celsiusResult").value = celsius === "-" ? "-" : celsius.toFixed(2);
+            document.getElementById("fahrenheitResult").value = fahrenheit === "-" ? "-" : fahrenheit.toFixed(2);
+            document.getElementById("kelvinResult").value = kelvin === "-" ? "-" : kelvin.toFixed(2);
+
+            calculateExtras();
+        }
+
+        function calculateExtras() {
+            const tempInput = parseFloat(document.getElementById("tempInput").value);
+            const windSpeed = parseFloat(document.getElementById("windSpeedTemp").value);
+            const windSpeedUnit = document.getElementById("windSpeedUnitTemp").value;
+            const humidity = parseFloat(document.getElementById("humidityTemp").value);
+            const unit = document.getElementById("unitSelectTemp").value;
+
+            let celsius = tempInput;
+            if (!isNaN(tempInput)) {
+                if (unit === "fahrenheit") celsius = (tempInput - 32) * 5 / 9;
+                if (unit === "kelvin") celsius = tempInput - 273.15;
+            }
+
+            let windchillDisplay = "es muss T≤10°C und v>0km/h sein";
+            let windchillUnit = "";
+            let windchillValue = null;
+            if (!isNaN(tempInput) && !isNaN(windSpeed) && windSpeed > 0) {
+                if (celsius < -50) {
+                    windchillDisplay = "es muss T>-50°C sein";
+                } else if (celsius <= 10) {
+                    let windMph = windSpeed;
+                    if (windSpeedUnit === "kmh") windMph = windSpeed * 0.621371;
+                    else if (windSpeedUnit === "kt") windMph = windSpeed * 1.15078;
+                    else if (windSpeedUnit === "ms") windMph = windSpeed * 2.23694;
+                    windchillValue = 13.12 + 0.6215 * celsius - 11.37 * Math.pow(windMph, 0.16) + 0.3965 * celsius * Math.pow(windMph, 0.16);
+                }
+            }
+
+            let heatIndexDisplay = "es muss T>26.7°C sein";
+            let heatIndexUnit = "";
+            let heatIndexValue = null;
+            if (!isNaN(tempInput) && !isNaN(humidity) && celsius >= 26.7) {
+                const fahrenheit = (celsius * 9 / 5) + 32;
+                const hi = -42.379 + 2.04901523 * fahrenheit + 10.14333127 * humidity
+                    - 0.22475541 * fahrenheit * humidity - 0.00683783 * fahrenheit * fahrenheit
+                    - 0.05481717 * humidity * humidity + 0.00122874 * fahrenheit * fahrenheit * humidity
+                    + 0.00085282 * fahrenheit * humidity * humidity - 0.00000199 * fahrenheit * fahrenheit * humidity * humidity;
+                heatIndexValue = (hi - 32) * 5 / 9;
+            }
+
+            if (windchillValue !== null) {
+                if (unit === "fahrenheit") {
+                    windchillDisplay = ((windchillValue * 9 / 5) + 32).toFixed(2);
+                    windchillUnit = "°F";
+                } else if (unit === "kelvin") {
+                    windchillDisplay = (windchillValue + 273.15).toFixed(2);
+                    windchillUnit = "°K";
+                } else {
+                    windchillDisplay = windchillValue.toFixed(2);
+                    windchillUnit = "°C";
+                }
+            }
+
+            if (heatIndexValue !== null) {
+                if (unit === "fahrenheit") {
+                    heatIndexDisplay = ((heatIndexValue * 9 / 5) + 32).toFixed(2);
+                    heatIndexUnit = "°F";
+                } else if (unit === "kelvin") {
+                    heatIndexDisplay = (heatIndexValue + 273.15).toFixed(2);
+                    heatIndexUnit = "°K";
+                } else {
+                    heatIndexDisplay = heatIndexValue.toFixed(2);
+                    heatIndexUnit = "°C";
+                }
+            }
+
+            document.getElementById("windchillResult").value = windchillDisplay;
+            document.getElementById("windchillUnit").textContent = windchillUnit;
+            document.getElementById("heatIndexResult").value = heatIndexDisplay;
+            document.getElementById("heatIndexUnit").textContent = heatIndexUnit;
+        }
+
+        // Pressure Converter Scripts
+        function convertPressure() {
+            const pressureInput = parseFloat(document.getElementById("pressureInput").value);
+            const unit = document.getElementById("unitSelectPressure").value;
+
+            let inhg, mmhg, hpa, psi, atm;
+
+            if (!isNaN(pressureInput)) {
+                if (unit === "inhg") {
+                    inhg = pressureInput;
+                    hpa = inhg * 33.8639;
+                } else if (unit === "mmhg") {
+                    mmhg = pressureInput;
+                    hpa = mmhg * 1.33322;
+                } else if (unit === "hpa") {
+                    hpa = pressureInput;
+                } else if (unit === "psi") {
+                    psi = pressureInput;
+                    hpa = psi * 68.9476;
+                } else if (unit === "atm") {
+                    atm = pressureInput;
+                    hpa = atm * 1013.25;
+                }
+
+                inhg = hpa / 33.8639;
+                mmhg = hpa / 1.33322;
+                psi = hpa / 68.9476;
+                atm = hpa / 1013.25;
+            } else {
+                inhg = mmhg = hpa = psi = atm = "-";
+            }
+
+            document.getElementById("inhgResult").value = inhg === "-" ? "-" : inhg.toFixed(2);
+            document.getElementById("mmhgResult").value = mmhg === "-" ? "-" : mmhg.toFixed(2);
+            document.getElementById("hpaResult").value = hpa === "-" ? "-" : hpa.toFixed(2);
+            document.getElementById("psiResult").value = psi === "-" ? "-" : psi.toFixed(2);
+            document.getElementById("atmResult").value = atm === "-" ? "-" : atm.toFixed(2);
+        }
+
+        function resetAviationFields() {
+            const fields = ["elevation", "qfeInput", "qnhInput", "flInput"];
+            fields.forEach(id => {
+                const element = document.getElementById(id);
+                element.value = "";
+                element.disabled = true;
+            });
+            document.getElementById("inputSelection").value = "elevation-qfeInput";
+            document.getElementById("elevationUnitSelect").value = "meters";
+            document.getElementById("temperaturePressure").value = "";
+            document.getElementById("tempUnitSelectPressure").value = "celsius";
+            document.getElementById("pressureAltitude").value = "-";
+            document.getElementById("densityAltitude").value = "-";
+            document.getElementById("paLabel").textContent = "Pressure Altitude (m):";
+            document.getElementById("daLabel").textContent = "Density Altitude (m):";
+            updateInputFields();
+        }
+
+        function updateInputFields() {
+            const selection = document.getElementById("inputSelection").value;
+            const fields = {
+                elevation: document.getElementById("elevation"),
+                qfeInput: document.getElementById("qfeInput"),
+                qnhInput: document.getElementById("qnhInput"),
+                flInput: document.getElementById("flInput")
+            };
+
+            Object.values(fields).forEach(field => {
+                field.disabled = true;
+                field.value = "";
+            });
+
+            const [first, second] = selection.split("-");
+            fields[first].disabled = false;
+            fields[second].disabled = false;
+        }
+
+        function calculateAviationPressures() {
+            let elevation = parseFloat(document.getElementById("elevation").value);
+            let qfe = parseFloat(document.getElementById("qfeInput").value);
+            let qnh = parseFloat(document.getElementById("qnhInput").value);
+            let fl = parseFloat(document.getElementById("flInput").value);
+            let temperature = parseFloat(document.getElementById("temperaturePressure").value);
+            const elevationUnit = document.getElementById("elevationUnitSelect").value;
+            const tempUnit = document.getElementById("tempUnitSelectPressure").value;
+
+            const tempLapseRate = 0.0065;
+            const T0 = 288.15;
+            const exponent = 5.255;
+            const standardPressure = 1013.25;
+            const metersToFeet = 3.28084;
+            const feetToMeters = 0.3048;
+
+            const selection = document.getElementById("inputSelection").value;
+            const [first, second] = selection.split("-");
+
+            const values = {
+                elevation: !isNaN(elevation) ? elevation : null,
+                qfeInput: !isNaN(qfe) ? qfe : null,
+                qnhInput: !isNaN(qnh) ? qnh : null,
+                flInput: !isNaN(fl) ? fl : null
+            };
+            if (values[first] === null || values[second] === null) return;
+
+            const elevationInMeters = elevationUnit === "feet" ? elevation * feetToMeters : elevation;
+
+            switch (selection) {
+                case "elevation-qfeInput":
+                    qnh = qfe / Math.pow(1 - (tempLapseRate * elevationInMeters / T0), exponent);
+                    const h1 = (T0 / tempLapseRate) * (1 - Math.pow(qfe / standardPressure, 1 / exponent));
+                    fl = Math.round((h1 * metersToFeet) / 100);
+                    break;
+                case "elevation-qnhInput":
+                    qfe = qnh * Math.pow(1 - (tempLapseRate * elevationInMeters / T0), exponent);
+                    const h2 = (T0 / tempLapseRate) * (1 - Math.pow(qfe / standardPressure, 1 / exponent));
+                    fl = Math.round((h2 * metersToFeet) / 100);
+                    break;
+                case "elevation-flInput":
+                    const hFeet3 = fl * 100;
+                    const h3 = hFeet3 / metersToFeet;
+                    qfe = standardPressure * Math.pow(1 - (tempLapseRate * h3 / T0), exponent);
+                    qnh = qfe / Math.pow(1 - (tempLapseRate * elevationInMeters / T0), exponent);
+                    break;
+                case "qfeInput-qnhInput":
+                    elevationInMeters = T0 * (1 - Math.pow(qfe / qnh, 1 / exponent)) / tempLapseRate;
+                    const h4 = (T0 / tempLapseRate) * (1 - Math.pow(qfe / standardPressure, 1 / exponent));
+                    fl = Math.round((h4 * metersToFeet) / 100);
+                    break;
+                case "qfeInput-flInput":
+                    const hFeet5 = fl * 100;
+                    const h5 = hFeet5 / metersToFeet;
+                    const hAboveQfe = (T0 / tempLapseRate) * (1 - Math.pow(qfe / standardPressure, 1 / exponent));
+                    elevationInMeters = h5 - hAboveQfe;
+                    qnh = qfe / Math.pow(1 - (tempLapseRate * elevationInMeters / T0), exponent);
+                    break;
+                case "qnhInput-flInput":
+                    const hFeet6 = fl * 100;
+                    const h6 = hFeet6 / metersToFeet;
+                    qfe = standardPressure * Math.pow(1 - (tempLapseRate * h6 / T0), exponent);
+                    elevationInMeters = T0 * (1 - Math.pow(qfe / qnh, 1 / exponent)) / tempLapseRate;
+                    break;
+            }
+
+            elevation = elevationUnit === "feet" ? elevationInMeters * metersToFeet : elevationInMeters;
+
+            if (!isNaN(temperature)) {
+                temperature = tempUnit === "fahrenheit" ? (temperature - 32) * 5 / 9 : temperature;
+            }
+
+            document.getElementById("elevation").value = elevation.toFixed(2);
+            document.getElementById("qfeInput").value = qfe.toFixed(2);
+            document.getElementById("qnhInput").value = qnh.toFixed(2);
+            document.getElementById("flInput").value = fl;
+
+            if (!isNaN(elevationInMeters) && !isNaN(qfe)) {
+                const paFeet = (1 - Math.pow((qfe / 1013.25), 0.190284)) * 145366.45;
+                let daFeet;
+                if (!isNaN(temperature)) {
+                    const tISA = 15 - tempLapseRate * elevationInMeters;
+                    daFeet = paFeet + 118.8 * (temperature - tISA);
+                }
+
+                const paValue = elevationUnit === "feet" ? paFeet : paFeet * feetToMeters;
+                const daValue = elevationUnit === "feet" ? daFeet : daFeet * feetToMeters;
+
+                document.getElementById("paLabel").textContent = `Pressure Altitude (${elevationUnit === "feet" ? "ft" : "m"}):`;
+                document.getElementById("daLabel").textContent = `Density Altitude (${elevationUnit === "feet" ? "ft" : "m"}):`;
+
+                document.getElementById("pressureAltitude").value = paValue.toFixed(2);
+                document.getElementById("densityAltitude").value = !isNaN(temperature) ? daValue.toFixed(2) : "-";
+            } else {
+                document.getElementById("pressureAltitude").value = "-";
+                document.getElementById("densityAltitude").value = "-";
+            }
+        }
+
+        // Humidity Converter Scripts
+        function calculateHumidity() {
+            const tempInput = parseFloat(document.getElementById("tempInputHumidity").value);
+            const tempUnit = document.getElementById("tempUnitHumidity").value;
+            let humidityInput = parseFloat(document.getElementById("humidityInput").value);
+            let dewPointInput = parseFloat(document.getElementById("dewPointInput").value);
+            const dewPointUnit = document.getElementById("dewPointUnit").value;
+            const stationPressureInput = parseFloat(document.getElementById("stationPressureInput").value);
+            const pressureUnit = document.getElementById("pressureUnitHumidity").value;
+
+            let tempCelsius, humidity, dewPointCelsius, satVaporPressure, vaporPressure;
+            let virtualTemp, satMixingRatio, mixingRatio, absoluteHumidity, specificHumidity;
+            let stationPressure;
+            const a = 17.625;
+            const b = 243.04;
+            const a_vp = 7.5;
+            const b_vp = 237.3;
+            const epsilon = 0.622;
+
+            if (!isNaN(tempInput)) {
+                if (tempUnit === "celsius") tempCelsius = tempInput;
+                else if (tempUnit === "fahrenheit") tempCelsius = (tempInput - 32) * 5 / 9;
+                else if (tempUnit === "kelvin") {
+                    if (tempInput < 0) {
+                        document.getElementById("tempInputHumidity").value = "";
+                        alert("Die Temperatur wurde gelöscht, da bei Kelvin Werte unter 0 °K nicht zulässig sind.");
+                        return;
+                    }
+                    tempCelsius = tempInput - 273.15;
+                }
+            }
+
+            if (!isNaN(dewPointInput)) {
+                if (dewPointUnit === "celsius") dewPointCelsius = dewPointInput;
+                else if (dewPointUnit === "fahrenheit") dewPointCelsius = (dewPointInput - 32) * 5 / 9;
+                else if (dewPointUnit === "kelvin") {
+                    if (dewPointInput < 0) {
+                        document.getElementById("dewPointInput").value = "";
+                        alert("Der Taupunkt wurde gelöscht, da bei Kelvin Werte unter 0 °K nicht zulässig sind.");
+                        return;
+                    }
+                    dewPointCelsius = dewPointInput - 273.15;
+                }
+                if (!isNaN(tempCelsius) && dewPointCelsius > tempCelsius) {
+                    dewPointCelsius = tempCelsius;
+                    const newDewPointValue = (
+                        dewPointUnit === "celsius" ? tempCelsius :
+                        dewPointUnit === "fahrenheit" ? (tempCelsius * 9 / 5) + 32 :
+                        tempCelsius + 273.15
+                    ).toFixed(2);
+                    document.getElementById("dewPointInput").value = dewPointInput = newDewPointValue;
+                    alert(`Der Taupunkt wurde auf ${newDewPointValue} ${dewPointUnit === "celsius" ? "°C" : dewPointUnit === "fahrenheit" ? "°F" : "°K"} zurückgesetzt, da er nicht höher als die Temperatur sein darf.`);
+                }
+            }
+
+            if (!isNaN(stationPressureInput)) {
+                if (pressureUnit === "hPa") stationPressure = stationPressureInput;
+                else if (pressureUnit === "mmHg") stationPressure = stationPressureInput * 1.33322;
+                else if (pressureUnit === "inHg") stationPressure = stationPressureInput * 33.8639;
+                else if (pressureUnit === "psi") stationPressure = stationPressureInput * 68.9476;
+
+                if (stationPressure <= 0) {
+                    document.getElementById("stationPressureInput").value = "";
+                    alert(`Der Stationsdruck wurde gelöscht, da Werte kleiner oder gleich 0 ${pressureUnit} nicht zulässig sind.`);
+                    stationPressure = NaN;
+                }
+            }
+
+            const inputCount = [tempInput, humidityInput, dewPointInput].filter(val => !isNaN(val)).length;
+
+            if (inputCount >= 2) {
+                if (!isNaN(tempCelsius) && !isNaN(dewPointCelsius)) {
+                    const alphaT = (a * tempCelsius) / (b + tempCelsius);
+                    const alphaD = (a * dewPointCelsius) / (b + dewPointCelsius);
+                    humidity = 100 * Math.exp(alphaD - alphaT);
+                } else if (!isNaN(tempCelsius) && !isNaN(humidityInput) && humidityInput >= 0 && humidityInput <= 100) {
+                    const alphaT = (a * tempCelsius) / (b + tempCelsius);
+                    const rh = humidityInput / 100;
+                    dewPointCelsius = (b * (alphaT + Math.log(rh))) / (a - Math.log(rh) - alphaT);
+                    humidity = humidityInput;
+                } else if (!isNaN(dewPointCelsius) && !isNaN(humidityInput) && humidityInput >= 0 && humidityInput <= 100) {
+                    const alphaD = (a * dewPointCelsius) / (b + dewPointCelsius);
+                    const rh = humidityInput / 100;
+                    tempCelsius = (b * (alphaD - Math.log(rh))) / (a + Math.log(rh) - alphaD);
+                    humidity = humidityInput;
+                }
+            } else {
+                tempCelsius = !isNaN(tempCelsius) ? tempCelsius : "-";
+                humidity = !isNaN(humidityInput) ? humidityInput : "-";
+                dewPointCelsius = !isNaN(dewPointCelsius) ? dewPointCelsius : "-";
+            }
+
+            satVaporPressure = !isNaN(tempCelsius) && tempCelsius !== "-" ? 6.1078 * Math.pow(10, (a_vp * tempCelsius) / (b_vp + tempCelsius)) : "-";
+            vaporPressure = !isNaN(dewPointCelsius) && dewPointCelsius !== "-" ? 6.1078 * Math.pow(10, (a_vp * dewPointCelsius) / (b_vp + dewPointCelsius)) : "-";
+
+            if (!isNaN(stationPressure) && stationPressure > 0) {
+                if (satVaporPressure !== "-" && vaporPressure !== "-") {
+                    const tempKelvin = tempCelsius + 273.15;
+                    virtualTemp = (tempKelvin / (1 - (vaporPressure / stationPressure) * (1 - epsilon))) - 273.15;
+                    satMixingRatio = epsilon * (satVaporPressure / (stationPressure - satVaporPressure)) * 1000;
+                    mixingRatio = epsilon * (vaporPressure / (stationPressure - vaporPressure)) * 1000;
+                    specificHumidity = (epsilon * vaporPressure) / (stationPressure - (1 - epsilon) * vaporPressure) * 1000;
+                } else {
+                    virtualTemp = "-";
+                    satMixingRatio = "-";
+                    mixingRatio = "-";
+                    specificHumidity = "-";
+                }
+            } else {
+                virtualTemp = "-";
+                satMixingRatio = "-";
+                mixingRatio = "-";
+                specificHumidity = "-";
+            }
+
+            if (!isNaN(tempCelsius) && tempCelsius !== "-" && vaporPressure !== "-") {
+                const tempKelvin = tempCelsius + 273.15;
+                absoluteHumidity = (vaporPressure * 216.679) / tempKelvin;
+            } else {
+                absoluteHumidity = "-";
+            }
+
+            document.getElementById("tempResultHumidity").dataset.value = tempCelsius === "-" ? "-" : tempCelsius.toFixed(2);
+            document.getElementById("dewPointResult").dataset.value = dewPointCelsius === "-" ? "-" : dewPointCelsius.toFixed(2);
+            document.getElementById("satVaporPressureResult").dataset.value = satVaporPressure === "-" ? "-" : satVaporPressure.toFixed(2);
+            document.getElementById("vaporPressureResult").dataset.value = vaporPressure === "-" ? "-" : vaporPressure.toFixed(2);
+            document.getElementById("virtualTempResult").dataset.value = virtualTemp === "-" ? "-" : virtualTemp.toFixed(2);
+            document.getElementById("humidityResult").value = humidity === "-" ? "-" : humidity.toFixed(2);
+            document.getElementById("satMixingRatioResult").value = satMixingRatio === "-" ? "-" : satMixingRatio.toFixed(2);
+            document.getElementById("mixingRatioResult").value = mixingRatio === "-" ? "-" : mixingRatio.toFixed(2);
+            document.getElementById("absoluteHumidityResult").value = absoluteHumidity === "-" ? "-" : absoluteHumidity.toFixed(2);
+            document.getElementById("specificHumidityResult").value = specificHumidity === "-" ? "-" : specificHumidity.toFixed(2);
+
+            updateResultDisplay();
+        }
+
+        function updateResultDisplay() {
+            let tempValue = document.getElementById("tempResultHumidity").dataset.value || "-";
+            const tempUnit = document.getElementById("tempResultUnit").value;
+            tempValue = tempValue === "-" ? "-" : parseFloat(tempValue);
+            if (tempValue !== "-") {
+                if (tempUnit === "fahrenheit") tempValue = (tempValue * 9 / 5) + 32;
+                else if (tempUnit === "kelvin") tempValue = tempValue + 273.15;
+            }
+            document.getElementById("tempResultHumidity").value = tempValue === "-" ? "-" : tempValue.toFixed(2);
+
+            let dewPointValue = document.getElementById("dewPointResult").dataset.value || "-";
+            const dewPointUnit = document.getElementById("dewPointResultUnit").value;
+            dewPointValue = dewPointValue === "-" ? "-" : parseFloat(dewPointValue);
+            if (dewPointValue !== "-") {
+                if (dewPointUnit === "fahrenheit") dewPointValue = (dewPointValue * 9 / 5) + 32;
+                else if (dewPointUnit === "kelvin") dewPointValue = dewPointValue + 273.15;
+            }
+            document.getElementById("dewPointResult").value = dewPointValue === "-" ? "-" : dewPointValue.toFixed(2);
+
+            let satVaporPressureValue = document.getElementById("satVaporPressureResult").dataset.value || "-";
+            const satVaporPressureUnit = document.getElementById("satVaporPressureResultUnit").value;
+            satVaporPressureValue = satVaporPressureValue === "-" ? "-" : parseFloat(satVaporPressureValue);
+            if (satVaporPressureValue !== "-") {
+                if (satVaporPressureUnit === "mmHg") satVaporPressureValue /= 1.33322;
+                else if (satVaporPressureUnit === "inHg") satVaporPressureValue /= 33.8639;
+                else if (satVaporPressureUnit === "psi") satVaporPressureValue /= 68.9476;
+            }
+            document.getElementById("satVaporPressureResult").value = satVaporPressureValue === "-" ? "-" : satVaporPressureValue.toFixed(2);
+
+            let vaporPressureValue = document.getElementById("vaporPressureResult").dataset.value || "-";
+            const vaporPressureUnit = document.getElementById("vaporPressureResultUnit").value;
+            vaporPressureValue = vaporPressureValue === "-" ? "-" : parseFloat(vaporPressureValue);
+            if (vaporPressureValue !== "-") {
+                if (vaporPressureUnit === "mmHg") vaporPressureValue /= 1.33322;
+                else if (vaporPressureUnit === "inHg") vaporPressureValue /= 33.8639;
+                else if (vaporPressureUnit === "psi") vaporPressureValue /= 68.9476;
+            }
+            document.getElementById("vaporPressureResult").value = vaporPressureValue === "-" ? "-" : vaporPressureValue.toFixed(2);
+
+            let virtualTempValue = document.getElementById("virtualTempResult").dataset.value || "-";
+            const virtualTempUnit = document.getElementById("virtualTempResultUnit").value;
+            virtualTempValue = virtualTempValue === "-" ? "-" : parseFloat(virtualTempValue);
+            if (virtualTempValue !== "-") {
+                if (virtualTempUnit === "fahrenheit") virtualTempValue = (virtualTempValue * 9 / 5) + 32;
+                else if (virtualTempUnit === "kelvin") virtualTempValue = virtualTempValue + 273.15;
+            }
+            document.getElementById("virtualTempResult").value = virtualTempValue === "-" ? "-" : virtualTempValue.toFixed(2);
+        }
+
+        // Event Listeners
+        // Wind
+        document.getElementById("windInput").addEventListener("input", convertWind);
+        document.getElementById("unitSelectWind").addEventListener("change", convertWind);
+        ["trueCourse", "trueAirspeed", "windDirection", "windSpeed"].forEach(id => {
+            document.getElementById(id).addEventListener("input", calculateWind);
+        });
+
+        // Temperature
+        ["tempInput", "windSpeedTemp", "humidityTemp"].forEach(id => {
+            document.getElementById(id).addEventListener("input", convertTemp);
+        });
+        ["unitSelectTemp", "windSpeedUnitTemp"].forEach(id => {
+            document.getElementById(id).addEventListener("change", convertTemp);
+        });
+
+        // Pressure
+        const pressureInputs = ["pressureInput", "elevation", "qfeInput", "qnhInput", "flInput", "temperaturePressure"];
+        pressureInputs.forEach(id => {
+            const element = document.getElementById(id);
+            element.addEventListener("blur", () => {
+                if (id === "pressureInput") convertPressure();
+                else calculateAviationPressures();
+            });
+            element.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    if (id === "pressureInput") convertPressure();
+                    else calculateAviationPressures();
+                }
+            });
+        });
+        ["unitSelectPressure", "inputSelection", "elevationUnitSelect", "tempUnitSelectPressure"].forEach(id => {
+            document.getElementById(id).addEventListener("change", () => {
+                if (id === "unitSelectPressure") convertPressure();
+                else if (id === "inputSelection") updateInputFields();
+                else calculateAviationPressures();
+            });
+        });
+        document.getElementById("resetButton").addEventListener("click", resetAviationFields);
+
+        // Humidity
+        const humidityInputs = ["tempInputHumidity", "humidityInput", "dewPointInput", "stationPressureInput"];
+        humidityInputs.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener("input", calculateHumidity);
+            input.addEventListener("blur", calculateHumidity);
+        });
+        ["tempUnitHumidity", "dewPointUnit", "pressureUnitHumidity"].forEach(id => {
+            document.getElementById(id).addEventListener("change", calculateHumidity);
+        });
+        ["tempResultUnit", "dewPointResultUnit", "satVaporPressureResultUnit", "vaporPressureResultUnit", "virtualTempResultUnit"].forEach(id => {
+            document.getElementById(id).addEventListener("change", updateResultDisplay);
+        });
+
+        // Initial Calls
+        convertWind();
+        calculateWind();
+        convertTemp();
+        convertPressure();
+        updateInputFields();
+        calculateAviationPressures();
+        calculateHumidity();
+    </script>
+</body>
+</html>
